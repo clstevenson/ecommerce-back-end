@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
     if (categories) {
       res.status(200).json(categories);
     } else {
-      res.status(404).send("No categories found.");
+      res.status(400).send("No categories found.");
     }
   } catch (err) {
     res.status(500).json(err);
@@ -42,7 +42,7 @@ router.get('/:id', async (req, res) => {
 
     // be more explicit about a category not existing
     if (singleCategory) res.status(200).json(singleCategory);
-    else res.status(200).json('That category does not exist');
+    else res.status(400).json('That category does not exist');
 
   } catch (err) {
     res.status(500).json(err);
@@ -73,7 +73,7 @@ router.put('/:id', async (req, res) => {
     if (updatedCategory[0] !== 0) {
       res.status(200).json(`Name of category ${req.params.id} updated to ${req.body.category_name}.`);
     } else {
-      res.status(200).json('No such category exists to update');
+      res.status(400).json('No such category exists to update');
     }
   } catch (err) {
     res.status(500).json(err);
@@ -85,7 +85,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const deletedCategory = await Category.destroy({ where: { id: req.params.id } });
     if (deletedCategory) res.status(200).json(`Deleted category ${req.params.id}`);
-    else res.status(200).json("A category with that ID doesn't exist.");
+    else res.status(400).json("A category with that ID doesn't exist.");
   } catch (err) {
     res.status(500).json(err);
   }

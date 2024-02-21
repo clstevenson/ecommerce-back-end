@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
     if (allProducts) {
       res.status(200).json(allProducts);
     } else {
-      res.status(200).json('No products found.')
+      res.status(400).json('No products found.')
     }
   } catch (err) {
     res.status(500).json(err);
@@ -54,7 +54,7 @@ router.get('/:id', async (req, res) => {
     if (oneProduct) {
       res.status(200).json(oneProduct);
     } else {
-      res.status(200).json('That product does not exist');
+      res.status(400).json('That product does not exist');
     }
   } catch (err) {
     res.status(500).json(err);
@@ -147,7 +147,7 @@ router.delete('/:id', async (req, res) => {
     if (deletedProduct) {
       res.status(200).json(`Deleted product ${req.params.id}`);
     } else {
-      res.status(200).json("A product with that ID doesn't exist");
+      res.status(400).json("A product with that ID doesn't exist");
     }
   } catch (err) {
     res.status(500).json(err);
