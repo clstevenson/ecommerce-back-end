@@ -8,10 +8,11 @@ router.get('/', async (req, res) => {
   // be sure to include its associated Products
   try {
     const categories = await Category.findAll({
+      attributes: [['id', 'categoryID'], ['category_name', 'category']],
       include: [{
         model: Product,
         attributes: [
-          'id', 'product_name', 'price', 'stock', 'category_id'
+          ['id', 'productID'], ['product_name', 'product'], 'price', 'stock'
         ]
       }],
     });
@@ -30,14 +31,19 @@ router.get('/:id', async (req, res) => {
   // be sure to include its associated Products
   try {
     const singleCategory = await Category.findByPk(req.params.id, {
+      attributes: [['id', 'categoryID'], ['category_name', 'category']],
       include: [{
         model: Product,
         attributes: [
-          'id', 'product_name', 'price', 'stock', 'category_id'
+          ['id', 'productID'], ['product_name', 'product'], 'price', 'stock'
         ]
       }],
     });
-    res.status(200).json(singleCategory);
+
+    // be more explicit about a category not existing
+    if (singleCategory) res.status(200).json(singleCategory);
+    else res.status(200).json('That category does not exist');
+
   } catch (err) {
     res.status(500).json(err);
   }
