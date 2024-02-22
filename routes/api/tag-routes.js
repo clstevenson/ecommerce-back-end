@@ -3,26 +3,35 @@ const { Tag, Product, ProductTag } = require('../../models');
 
 // The `/api/tags` endpoint
 
+// function to simplify & flatten API output
+// input must be an array
+const apiOutput = (tagArr) => tagArr.map(tag => {
+  let output = {};
+  output.tagID = tag.id,
+    output.tagName = tag.tag_name,
+    // TODO: need to test with no products for a given tag
+    output.products = tag.products.map(product => {
+      let obj = {};
+      obj.productID = product.id;
+      obj.product = product.product_name;
+      obj.price = product.price;
+      obj.stock = product.stock;
+      obj.categoryID = product.category_id;
+      return obj;
+    });
+  return output;
+});
+
 router.get('/', async (req, res) => {
   // find all tags
   try {
     const allTags = await Tag.findAll({
-      attributes: [
-        ['id', 'tagID'],
-        ['tag_name', 'tag']
-      ],
-      include: {
-        model: Product,
-        attributes: [
-          ['id', 'productID'],
-          ['product_name', 'product'],
-          'price',
-          'stock',
-          ['category_id', 'categoryID']
-        ]
-      }
+      include: Product
     });
-    res.status(200).json(allTags);
+    // Choose one of the following responses, commenting the other
+    // the 1st gives a more readable format, the 2nd gives all output
+    res.status(200).json(apiOutput(allTags));
+    // res.status(200).json(allTags);
   } catch (err) {
     res.status(500).json(err);
   }
@@ -33,22 +42,16 @@ router.get('/:id', async (req, res) => {
   // be sure to include its associated Product data
   try {
     const oneTag = await Tag.findByPk(req.params.id, {
-      attributes: [
-        ['id', 'tagID'],
-        ['tag_name', 'tag']
-      ],
-      include: {
-        model: Product,
-        attributes: [
-          ['id', 'productID'],
-          ['product_name', 'product'],
-          'price',
-          'stock',
-          ['category_id', 'categoryID']
-        ]
-      }
+      include: Product
     });
-    res.status(200).json(oneTag);
+    if (oneTag) {
+      // Choose one of the following responses, commenting the other
+      // the 1st gives a more readable format, the 2nd gives all output
+      res.status(200).json(apiOutput([oneTag]));
+      // res.status(200).json(oneTag);
+    } else {
+      res.status(400).json("No tags with that ID.")
+    }
   } catch (err) {
     res.status(500).json(err);
   }
