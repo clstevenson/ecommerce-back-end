@@ -3,27 +3,34 @@ const { Product, Category, Tag, ProductTag } = require('../../models');
 
 // The `/api/products` endpoint
 
+// function to simplify & flatten API output
+// input must be an array
+const apiOutput = (productArr) => productArr.map(product => {
+  let output = {};
+  output.productID = product.id;
+  output.productName = product.product_name;
+  output.price = product.price;
+  output.stock = product.stock;
+  output.categoryID = product.categoryId;
+  // newly-added products initially have no category
+  if (product.category) output.category = product.category.category_name;
+  output.tagIDs = product.tags.map(tag => tag.id);
+  output.tags = product.tags.map(tag => tag.tag_name);
+  return output;
+});
+
 // get all products
 router.get('/', async (req, res) => {
   // find all products
   try {
     const allProducts = await Product.findAll({
-      attributes: [
-        ['id', 'productID'],
-        ['product_name', 'product'],
-        'price',
-        'stock',
-      ],
-      include: [{
-        model: Category,
-        attributes: [['id', 'categoryID'], ['category_name', 'category']]
-      }, {
-        model: Tag,
-        attributes: [['id', 'tagID'], ['tag_name', 'tag']]
-      }]
+      include: [Category, Tag]
     });
-    if (allProducts) {
-      res.status(200).json(allProducts);
+    if (allProducts.length > 0) {
+      // uncomment one of the following two lines
+      // first option is more readable, 2nd is raw sequelize output
+      res.status(200).json(apiOutput(allProducts));
+      // res.status(200).json(allProducts);
     } else {
       res.status(400).json('No products found.')
     }
@@ -37,22 +44,13 @@ router.get('/:id', async (req, res) => {
   // find a single product by its `id`
   try {
     const oneProduct = await Product.findByPk(req.params.id, {
-      attributes: [
-        ['id', 'productID'],
-        ['product_name', 'product'],
-        'price',
-        'stock',
-      ],
-      include: [{
-        model: Category,
-        attributes: [['id', 'categoryID'], ['category_name', 'category']]
-      }, {
-        model: Tag,
-        attributes: [['id', 'tagID'], ['tag_name', 'tag']]
-      }]
+      include: [Category, Tag]
     });
     if (oneProduct) {
-      res.status(200).json(oneProduct);
+      // uncomment one of the following (2nd is raw output)
+      // first option is more readable, 2nd is raw sequelize output
+      res.status(200).json(apiOutput([ oneProduct ]));
+      // res.status(200).json(oneProduct);
     } else {
       res.status(400).json('That product does not exist');
     }
