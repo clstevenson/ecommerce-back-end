@@ -9,7 +9,6 @@ const apiOutput = (tagArr) => tagArr.map(tag => {
   let output = {};
   output.tagID = tag.id,
     output.tagName = tag.tag_name,
-    // TODO: need to test with no products for a given tag
     output.products = tag.products.map(product => {
       let obj = {};
       obj.productID = product.id;
@@ -58,7 +57,12 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  // create a new tag
+  /** To create a new tag, request shoule pass a (JSON-ified) object
+   * with the key containing the tag name, such as shown below
+   {
+     tag_name: "On sale"
+   }
+   **/
   try {
     const newTag = await Tag.create({
       tag_name: req.body.tag_name
@@ -70,7 +74,13 @@ router.post('/', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-  // update a tag's name by its `id` value
+  // update a tag's name by its `id` value. Request
+  /** To update a tag's name, request shoule pass a (JSON-ified) object
+   * with the key containing the tag name, such as shown below
+   {
+     tag_name: "On sale"
+   }
+   **/
   try {
     const updatedTag = await Tag.update(
       {
