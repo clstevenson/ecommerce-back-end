@@ -12,7 +12,7 @@ const apiOutput = (productArr) => productArr.map(product => {
   output.price = product.price;
   output.stock = product.stock;
   output.categoryID = product.categoryId;
-  // newly-added products initially have no category
+  // NULL categories are allowed, need to test for that
   if (product.category) output.category = product.category.category_name;
   output.tagIDs = product.tags.map(tag => tag.id);
   output.tags = product.tags.map(tag => tag.tag_name);
@@ -61,18 +61,23 @@ router.get('/:id', async (req, res) => {
 
 // create new product
 router.post('/', async (req, res) => {
-  /* req.body should look like this...
+  /* req.body should look like this (submit as JSON).
+   * Some values (stock, category_id, tagIDs) can be left off either bc NULL is
+   * allowed or there are default values. Others must be included or an error will
+   * be thrown. Note that tagIDs must be an array, even if just 1 ID; use an
+   * empty array for no tag IDs.
     {
       product_name: "Basketball",
       price: 200.00,
       stock: 3,
+      category_id: 2,
       tagIds: [1, 2, 3, 4]
     }
-    TODO: add a category ID to the POST request
   */
   try {
     const newProduct = await Product.create(req.body);
-    // if there's product tags, we need to create pairings to bulk create in the ProductTag model
+    // if there's product tags, we need to create pairings to bulk create
+    // in the ProductTag model
     if (req.body.tagIds.length) {
       const productTagIdArr = req.body.tagIds.map((tag_id) => {
         return {
@@ -94,6 +99,19 @@ router.post('/', async (req, res) => {
 
 // update product
 router.put('/:id', async (req, res) => {
+  /* req.body should look like this (submit as JSON).
+   * Some values (stock, category_id, tagIDs) can be left off either bc NULL is
+   * allowed or there are default values. Others must be included or an error will
+   * be thrown. Note that tagIDs must be an array, even if just 1 ID; use an
+   * empty array for no tag IDs.
+    {
+      product_name: "Basketball",
+      price: 200.00,
+      stock: 3,
+      category_id: 2,
+      tagIds: [1, 2, 3, 4]
+    }
+  */
   try {
     // update product data
     const updatedProduct = await Product.update(req.body, {
