@@ -19,6 +19,16 @@ const apiOutput = (productArr) => productArr.map(product => {
   return output;
 });
 
+// function to check a list of tag IDs for validity
+// input is an array of tag IDs, function returns a boolean
+const checkTagIDs = async (tagIDarr) => {
+  for (const id of tagIDarr) {
+    const exists = await Tag.findByPk(id);
+    if (!exists) return false;
+  }
+  return true;
+}
+
 // get all products
 router.get('/', async (req, res) => {
   // find all products
@@ -49,7 +59,7 @@ router.get('/:id', async (req, res) => {
     if (oneProduct) {
       // uncomment one of the following (2nd is raw output)
       // first option is more readable, 2nd is raw sequelize output
-      res.status(200).json(apiOutput([ oneProduct ]));
+      res.status(200).json(apiOutput([oneProduct]));
       // res.status(200).json(oneProduct);
     } else {
       res.status(400).json('That product does not exist');
@@ -74,6 +84,24 @@ router.post('/', async (req, res) => {
       tagIds: [1, 2, 3, 4]
     }
   */
+
+  // check if there is a submitted category ID and if it exists
+  if (req.body.category_id) {
+    // don't check validity unless a value is actually submitted
+    const existsCategory = await Category.findByPk(req.body.category_id);
+    if (!existsCategory) {
+      res.status(400).json("Error: category ID does not exist.");
+      return;
+    };
+  };
+
+  // check that each Tag ID is valid
+  allTagsExist = await checkTagIDs(req.body.tagIds);
+  if (!allTagsExist) {
+    res.status(400).json("Error: at least one of the tag IDs does not exist.");
+    return;
+  };
+
   try {
     const newProduct = await Product.create(req.body);
     // if there's product tags, we need to create pairings to bulk create
@@ -112,6 +140,31 @@ router.put('/:id', async (req, res) => {
       tagIds: [1, 2, 3, 4]
     }
   */
+
+  // test if the product ID exists
+  const validProductID = await Product.findByPk(req.params.id);
+  if (!validProductID) {
+    res.status(400).json("Error: product ID does not exist.");
+    return;
+  };
+
+  // Now do the same for the category ID
+  if (req.body.category_id) {
+    // don't check validity unless a value is actually submitted
+    const existsCategory = await Category.findByPk(req.body.category_id);
+    if (!existsCategory) {
+      res.status(400).json("Error: category ID does not exist.");
+      return;
+    };
+  };
+
+  // Finally check that each Tag ID is valid
+  allTagsExist = await checkTagIDs(req.body.tagIds);
+  if (!allTagsExist) {
+    res.status(400).json("Error: at least one of the tag IDs does not exist.");
+    return;
+  };
+
   try {
     // update product data
     const updatedProduct = await Product.update(req.body, {
